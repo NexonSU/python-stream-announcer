@@ -10,3 +10,4 @@ TODO:
 - [ ] Integrate youtube-dl to script
 - [ ] Integrate ffmpeg to script
 - [ ] Upload files directly to telegram without web-server
+- [ ] English translate
