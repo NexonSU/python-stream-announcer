@@ -7,3 +7,6 @@ TODO:
 - [ ] Move keys and IDs to .env file
 - [ ] Change temp file storage to something like pickle
 - [ ] Add logging
+- [ ] Integrate youtube-dl to script
+- [ ] Integrate ffmpeg to script
+- [ ] Upload files directly to telegram without web-server
