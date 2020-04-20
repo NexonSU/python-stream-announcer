@@ -11,7 +11,7 @@ telegram_chat = '@example' #your telegram channel
 
 #twitch
 twitch_client_id = 'example' #to get Client ID, visit https://dev.twitch.tv/docs/authentication#registration
-twitch_channelid = 'example' #to get your channel ID, you need to make API call, but you can just open your Twitch page and lookup for some API requests from DevTools > Network, for example https://api.twitch.tv/helix/streams?user_id=<your ID>
+twitch_channelid = 'example' #to get your channel ID, you need to make API call https://api.twitch.tv/kraken/users?login=<twitch_login>
 twitch_channelname = 'example' #for link in messages
 
 #youtube
