@@ -4,11 +4,13 @@ import json
 import os
 import sys
 import time
-import datetime
 import requests
+import logging
 from bs4 import BeautifulSoup
-
+ 
 temp_folder_name = __file__.rsplit('.', 1)[0]
+
+logging.basicConfig(filename=f"{temp_folder_name}.log", level=config.loglevel, format=config.logformat, datefmt=config.logdatefmt)
 
 #checking temp files
 if not os.path.exists(temp_folder_name): os.makedirs(temp_folder_name)
@@ -37,21 +39,26 @@ thumbnail = 'https://zavtrastream.nexon.su/thumbnail.jpg?'+str(time.time())
 if open(f'{temp_folder_name}/status', 'r').read() != status:
 	open(f'{temp_folder_name}/status', 'wt', encoding='utf-8').write(status)
 	message = f'Статус изменен на "{status}".'
+	logging.info(message)
 	requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendMessage', data={'chat_id': config.telegram_chat, 'text': message, 'disable_notification': True})
 
 if open(f'{temp_folder_name}/game', 'r').read() != category:
 	open(f'{temp_folder_name}/game', 'wt', encoding='utf-8').write(category)
 	message = f'Категория изменена на "{category}".'
+	logging.info(message)
 	requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendMessage', data={'chat_id': config.telegram_chat, 'text': message, 'disable_notification': True})
 
 #checking stream online status
 if 'concurrentViewers' in stream['liveStreamingDetails']:
+	logging.info('Stream online')
 	viewers = str(stream['liveStreamingDetails']['concurrentViewers'])
+	logging.info(f'Viewers: {viewers}')
 	if open(f'{temp_folder_name}/stream', 'r').read() != 'online':
 		#announcing stream in telegram
 		open(f'{temp_folder_name}/stream', 'wt', encoding='utf-8').write('online')
 		open(f'{temp_folder_name}/viewers', 'wt', encoding='utf-8').write('0')
 		message = f'Стрим "{status}" начался.\nКатегория: {category}.\nhttps://www.youtube.com/watch?v={videoid}'
+		logging.info(message)
 		os.system(f'youtube-dl --get-url "https://www.youtube.com/watch?v={videoid}" > {temp_folder_name}/stream-url')
 		time.sleep(1)
 		os.system(f'ffmpeg -i $(cat {temp_folder_name}/stream-url) -f image2 -frames:v 1 -y -v 0 {temp_folder_name}/thumbnail.jpg')
@@ -61,7 +68,7 @@ if 'concurrentViewers' in stream['liveStreamingDetails']:
 	else:
 		#updating stream information in telegram
 		msg = open(f'{temp_folder_name}/msg', 'r').read();
-		caption = f'Стрим: "{status}".\nКатегория: {category}.\nОнлайн: {viewers}.\nhttps://www.youtube.com/watch?v={videoid}'
+		caption = f'Стрим: {status}.\nКатегория: {category}.\nОнлайн: {viewers}.\nhttps://www.youtube.com/watch?v={videoid}'
 		os.system(f'youtube-dl --get-url "https://www.youtube.com/watch?v={videoid}" > {temp_folder_name}/stream-url')
 		time.sleep(1)
 		os.system(f'ffmpeg -i $(cat {temp_folder_name}/stream-url) -f image2 -frames:v 1 -y -v 0 {temp_folder_name}/thumbnail.jpg')
@@ -71,6 +78,7 @@ if 'concurrentViewers' in stream['liveStreamingDetails']:
 		#updating viewers count
 		open(f'{temp_folder_name}/viewers', 'wt', encoding='utf-8').write(str(viewers))
 else:
+	logging.info('Stream offline')
 	if open(f'{temp_folder_name}/stream', 'r').read() != 'offline':
 		#posting end of stream in telegram
 		open(f'{temp_folder_name}/stream', 'wt', encoding='utf-8').write('offline')
@@ -78,4 +86,8 @@ else:
 		status = open(f'{temp_folder_name}/status', 'r').read();
 		msg = open(f'{temp_folder_name}/msg', 'r').read();
 		message = f'Стрим "{status}" закончился.\nМаксимум зрителей за стрим: {viewers}.'
+		logging.info(message)
 		requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendMessage', data={'chat_id': config.telegram_chat, 'text': message, 'reply_to_message_id': msg, 'disable_notification': True})
+
+logging.info(f'Status: {status}')
+logging.info(f'Category: {category}')
