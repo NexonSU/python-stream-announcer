@@ -1,5 +1,10 @@
 #!/usr/bin/env python
 
+#loglevel: CRITICAL - 50, ERROR - 40, WARNING - 30, INFO - 20, DEBUG - 10
+loglevel = 30
+logformat = "%(asctime)s - %(levelname)s - %(message)s"
+logdatefmt = "%d.%m.%Y %H:%M:%S"
+
 #telegram
 telegram_token = 'example:example' #to get token, create bot via @botfather at telegram https://t.me/BotFather
 telegram_chat = '@example' #your telegram channel
