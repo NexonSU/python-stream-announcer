@@ -10,7 +10,6 @@ import logging
 import pickle
 import youtube_dl
 import ffmpeg
-import base64
 
 script_name = __file__.rsplit('.', 1)[0]
 
