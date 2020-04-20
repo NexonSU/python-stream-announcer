@@ -8,7 +8,10 @@ import requests
 from bs4 import BeautifulSoup
 import logging
 import pickle
- 
+import youtube_dl
+import ffmpeg
+import base64
+
 script_name = __file__.rsplit('.', 1)[0]
 
 #log init
@@ -39,7 +42,6 @@ stream = requests.get('https://www.googleapis.com/youtube/v3/videos', params={'p
 categorylist = storage['categorylist']
 category = [subd['snippet']['title'] for subd in categorylist['items'] if subd['id'] == stream['snippet']['categoryId']][0]
 status = stream['snippet']['title']
-thumbnail = 'https://zavtrastream.nexon.su/thumbnail.jpg?'+str(time.time())
 
 if storage['status'] != status:
 	storage['status'] = status
@@ -64,20 +66,19 @@ if 'concurrentViewers' in stream['liveStreamingDetails']:
 		storage['viewers'] = 0
 		message = f'Стрим "{status}" начался.\nКатегория: {category}.\nhttps://www.youtube.com/watch?v={videoid}'
 		logging.info(message)
-		os.system(f'youtube-dl --get-url "https://www.youtube.com/watch?v={videoid}" > {script_name}/stream-url')
-		time.sleep(1)
-		os.system(f'ffmpeg -i $(cat {script_name}/stream-url) -f image2 -frames:v 1 -y -v 0 {script_name}/thumbnail.jpg')
-		time.sleep(3)
-		msg = requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendPhoto', data={'chat_id': config.telegram_chat, 'photo': thumbnail, 'caption': message}).json()
+		playlist = youtube_dl.YoutubeDL({'skip_download': True, 'quiet': True}).extract_info(f'https://www.youtube.com/watch?v={videoid}')['url']
+		thumbnail, _ = (ffmpeg.input(playlist).output('pipe:', vframes=1, format='image2', vcodec='mjpeg', **{'vf': 'scale=-1:720'}).run(capture_stdout=True, quiet=True))
+		msg = requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendPhoto', data={'chat_id': config.telegram_chat, 'caption': message}, files={'photo': thumbnail}).json()
 		storage['msg'] = msg['result']['message_id']
 	else:
 		#updating stream information in telegram
-		msg = storage['msg']
+		msg = str(storage['msg'])
 		caption = f'Стрим: {status}.\nКатегория: {category}.\nОнлайн: {viewers}.\nhttps://www.youtube.com/watch?v={videoid}'
-		os.system(f'youtube-dl --get-url "https://www.youtube.com/watch?v={videoid}" > {script_name}/stream-url')
-		time.sleep(1)
-		os.system(f'ffmpeg -i $(cat {script_name}/stream-url) -f image2 -frames:v 1 -y -v 0 {script_name}/thumbnail.jpg')
-		time.sleep(3)
+		playlist = youtube_dl.YoutubeDL({'skip_download': True, 'quiet': True}).extract_info(f'https://www.youtube.com/watch?v={videoid}')['url']
+		thumbnail, _ = (ffmpeg.input(playlist).output('pipe:', vframes=1, format='image2', vcodec='mjpeg', **{'vf': 'scale=-1:720'}).run(capture_stdout=True, quiet=True))
+		#temporary solution with web-server
+		open('thumbnail.jpg', 'wb').write(thumbnail)
+		thumbnail = 'https://<yourdomain>/<path to thumbnail.jpg>?'+str(time.time())
 		requests.post(f'https://api.telegram.org/bot{config.telegram_token}/editMessageMedia', data={'chat_id': config.telegram_chat, 'message_id': msg, 'media': json.dumps({'type': 'photo', 'media': thumbnail, 'caption': caption})})
 	if int(storage['viewers']) < int(viewers):
 		#updating viewers count
