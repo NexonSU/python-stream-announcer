@@ -3,7 +3,7 @@ Simple Stream Telegram Announcer from Youtube and Twitch
 
 TODO:
 - [X] Move keys and IDs to config file
-- [ ] Change temp file storage to something like pickle
+- [X] Change temp file storage to something like pickle
 - [X] Add logging
 - [ ] Integrate youtube-dl to script
 - [ ] Integrate ffmpeg to script
