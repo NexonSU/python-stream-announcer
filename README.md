@@ -1,7 +1,33 @@
 # python-stream-announcer
 Simple Stream Telegram Announcer from Youtube and Twitch
 
-TODO:
+## twitch.py requirements
+Requests library:
+```bash
+pip install requests
+```
+
+## youtube.py requirements
+Requests library:
+```bash
+pip install requests
+```
+BeautifulSoup library:
+```bash
+pip install beautifulsoup4
+```
+youtube-dl:
+```bash
+pip install youtube-dl
+```
+ffmpeg:
+
+Before installing ffmpeg wrapper, install ffmpeg binary to your system
+```bash
+pip install ffmpeg-python
+```
+
+# TODO
 - [X] Move keys and IDs to config file
 - [X] Change temp file storage to something like pickle
 - [X] Add logging
