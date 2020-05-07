@@ -5,9 +5,6 @@ Simple Stream Telegram Announcer from Youtube and Twitch
 ```bash
 cd <your script path>
 pip install requests
-pip install beautifulsoup4
-pip install youtube-dl
-pip install ffmpeg-python
 wget https://github.com/NexonSU/python-stream-announcer/archive/master.zip
 unzip master.zip
 rm master.zip
