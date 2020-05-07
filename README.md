@@ -17,8 +17,7 @@ pip install beautifulsoup4
 pip install youtube-dl
 pip install ffmpeg-python
 ```
-Also, ffmpeg-python requires ffmpeg binary on your system.
-https://www.ffmpeg.org/
+Also, ffmpeg-python requires ffmpeg binary on your system: https://www.ffmpeg.org/
 
 # TODO
 - [ ] Upload files directly to telegram without web-server in youtube.py
