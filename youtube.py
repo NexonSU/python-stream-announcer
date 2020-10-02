@@ -18,7 +18,7 @@ logging.basicConfig(filename=f"{script_name}.log", level=config.loglevel, format
 
 #checking pickle file
 if not os.path.exists(f'{script_name}.pkl'):
-	storage = {'category': 'None', 'msg': '0', 'status': 'None', 'stream': 'offline', 'viewers': '0', 'categorylist_update_date': 0, 'categorylist': '', 'stream-url': '', 'thumbnail': ''} 
+	storage = {'category': 'None', 'status': 'None', 'stream': 'offline', 'viewers': '0', 'categorylist_update_date': 0, 'categorylist': '', 'stream-url': '', 'thumbnail': ''} 
 	pickle.dump(storage, open(f'{script_name}.pkl', 'wb'))
 
 #loading variables from pickle file
@@ -29,10 +29,29 @@ if int(time.time())-int(storage['categorylist_update_date']) > 2630000:
 	storage['categorylist'] = requests.get('https://www.googleapis.com/youtube/v3/videoCategories', params={'part': 'snippet', 'regionCode': 'ru', 'hl': 'ru_RU', 'key': config.youtube_api_key}).json()
 	storage['categorylist_update_date'] = int(time.time())
 
-#checking for videoid on stream page 
-stream = requests.get('https://www.youtube.com/embed/live_stream', params={'channel': config.youtube_channelid}).content
-soup = BeautifulSoup(stream, features="html.parser")
-videoid = soup.head.find_all('link', rel="canonical")[0]['href'].split('watch?v=')[1]
+#checking for videoid on stream page
+try:
+	stream = requests.get('https://www.youtube.com/embed/live_stream', params={'channel': config.youtube_channelid}).content
+	soup = BeautifulSoup(stream, features="html.parser")
+	videoid = soup.head.find_all('link', rel="canonical")[0]['href'].split('watch?v=')[1]
+except:
+	logging.info('Stream offline')
+	viewers = storage['viewers']
+	status = storage['status']
+	category = storage['category']
+	if storage['stream'] != 'offline':
+		#posting end of stream in telegram
+		storage['stream'] = 'offline'
+		message = f'Стрим "{status}" закончился.\nМаксимум зрителей за стрим: {viewers}.'
+		logging.info(message)
+		requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendMessage', data={'chat_id': config.telegram_chat, 'text': message, 'disable_notification': True})
+
+	logging.info(f'Status: {status}')
+	logging.info(f'Category: {category}')
+
+	#store variables to pickle file
+	pickle.dump(storage, open(f'{script_name}.pkl', 'wb'))
+	sys.exit(0)
 
 #getting stream information
 stream = requests.get('https://www.googleapis.com/youtube/v3/videos', params={'part': 'snippet,liveStreamingDetails', 'id': videoid, 'key': config.youtube_api_key}).json().get("items")[0]
@@ -67,18 +86,7 @@ if 'concurrentViewers' in stream['liveStreamingDetails']:
 		logging.info(message)
 		playlist = youtube_dl.YoutubeDL({'skip_download': True, 'quiet': True}).extract_info(f'https://www.youtube.com/watch?v={videoid}')['url']
 		thumbnail, _ = (ffmpeg.input(playlist).output('pipe:', vframes=1, format='image2', vcodec='mjpeg', **{'vf': 'scale=-1:720'}).run(capture_stdout=True, quiet=True))
-		msg = requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendPhoto', data={'chat_id': config.telegram_chat, 'caption': message}, files={'photo': thumbnail}).json()
-		storage['msg'] = msg['result']['message_id']
-	else:
-		#updating stream information in telegram
-		msg = str(storage['msg'])
-		caption = f'Стрим: {status}.\nКатегория: {category}.\nОнлайн: {viewers}.\nhttps://www.youtube.com/watch?v={videoid}'
-		playlist = youtube_dl.YoutubeDL({'skip_download': True, 'quiet': True}).extract_info(f'https://www.youtube.com/watch?v={videoid}')['url']
-		thumbnail, _ = (ffmpeg.input(playlist).output('pipe:', vframes=1, format='image2', vcodec='mjpeg', **{'vf': 'scale=-1:720'}).run(capture_stdout=True, quiet=True))
-		#temporary solution with web-server
-		open('thumbnail.jpg', 'wb').write(thumbnail)
-		thumbnail = 'https://<yourdomain>/<path to thumbnail.jpg>?'+str(time.time())
-		requests.post(f'https://api.telegram.org/bot{config.telegram_token}/editMessageMedia', data={'chat_id': config.telegram_chat, 'message_id': msg, 'media': json.dumps({'type': 'photo', 'media': thumbnail, 'caption': caption})})
+		requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendPhoto', data={'chat_id': config.telegram_chat, 'caption': message}, files={'photo': thumbnail})
 	if int(storage['viewers']) < int(viewers):
 		#updating viewers count
 		storage['viewers'] = viewers
@@ -89,10 +97,9 @@ else:
 		storage['stream'] = 'offline'
 		viewers = storage['viewers']
 		status = storage['status']
-		msg = storage['msg']
 		message = f'Стрим "{status}" закончился.\nМаксимум зрителей за стрим: {viewers}.'
 		logging.info(message)
-		requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendMessage', data={'chat_id': config.telegram_chat, 'text': message, 'reply_to_message_id': msg, 'disable_notification': True})
+		requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendMessage', data={'chat_id': config.telegram_chat, 'text': message, 'disable_notification': True})
 
 logging.info(f'Status: {status}')
 logging.info(f'Category: {category}')
