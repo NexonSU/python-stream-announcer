@@ -15,5 +15,4 @@ twitch_channelid = 'example' #to get your channel ID, you need to make API call 
 twitch_channelname = 'example' #for link in messages
 
 #youtube
-youtube_api_key = 'example' #to get api key, visit https://developers.google.com/youtube/v3/getting-started
 youtube_channelid = 'example' #your youtube channel ID. To get channel ID, just open "Your channel" from user panel dock and copy channel ID from address bar.
