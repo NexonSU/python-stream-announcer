@@ -13,7 +13,3 @@ rmdir python-stream-announcer-master
 ```
 ## Additional installation for Youtube
 youtube.py requires ffmpeg binary on your system: https://www.ffmpeg.org/
-
-# TODO
-- [ ] Upload files directly to telegram without web-server in youtube.py
-- [ ] English translate
