@@ -16,4 +16,4 @@ twitch_channelname = 'example' #for link in messages
 
 #youtube
 youtube_channelid = 'example' #your youtube channel ID. To get channel ID, just open "Your channel" from user panel dock and copy channel ID from address bar.
-youtube_channelname = 'example'
+youtube_channelname = 'example' #for link in messages
