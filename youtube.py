@@ -23,7 +23,7 @@ storage = pickle.load(open('youtube.pkl', 'rb'))
 if videoid != storage['lastvideoid']:
 	#announcing stream in telegram
 	message = f'Стрим "{title}" начался.\nhttps://youtube.com/{config.youtube_channelname}/live'
-	requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendMessage', data={'chat_id': config.telegram_chat, 'text': message})
+	requests.post(f'https://api.telegram.org/bot{config.telegram_token}/sendMessage', data={'chat_id': config.telegram_chat, 'text': message, 'disable_web_page_preview': 1})
 	storage['lastvideoid'] = videoid
 
 	#store variables to pickle file
