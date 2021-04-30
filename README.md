@@ -10,3 +10,4 @@ rm python-stream-announcer-master.zip
 mv ./python-stream-announcer-master/* ./
 rmdir python-stream-announcer-master
 pip3 install --user -r requirements.txt
+```
